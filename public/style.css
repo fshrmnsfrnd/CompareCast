@@ -1,0 +1,171 @@
+:root {
+  --bg: #0f1720;
+  --panel: #1b2733;
+  --text: #e6edf3;
+  --muted: #93a1ad;
+  --accent: #4aa3ff;
+  --border: #2a3947;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 { font-size: 20px; margin: 0; }
+.actions { display: flex; align-items: center; gap: 12px; }
+#status { color: var(--muted); font-size: 13px; }
+
+button {
+  background: var(--accent);
+  color: #04121f;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: default; }
+
+#sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 16px 24px 0;
+}
+.source-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 240px;
+}
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.group-header input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.source-group .source-card { min-width: 0; }
+.source-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  min-width: 220px;
+}
+.source-card .label { font-weight: 600; }
+.source-card .meta { color: var(--muted); margin-top: 4px; }
+.source-card .err { color: #ff6b6b; margin-top: 4px; }
+.source-card.hidden-src { opacity: 0.45; }
+
+.src-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.src-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 24px 0;
+}
+#day-nav button {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  min-width: 44px;
+  padding: 8px 12px;
+  font-size: 16px;
+}
+#day-nav button:disabled { opacity: 0.35; }
+#day-label {
+  font-weight: 600;
+  min-width: 130px;
+  text-align: center;
+}
+
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 20px;
+  padding: 20px 24px;
+}
+.chart-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px 18px;
+}
+.chart-panel h2 { font-size: 15px; margin: 4px 4px 10px; }
+.chart-wrap { position: relative; height: 300px; }
+
+footer {
+  padding: 16px 24px 32px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Touch-Geraete: Scrubben auf den Graphen soll die Seite nicht mitscrollen. */
+.chart-wrap { touch-action: none; }
+
+/* Mobile / schmale Displays */
+@media (max-width: 640px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+  header h1 { font-size: 18px; }
+  .actions { width: 100%; justify-content: space-between; }
+  #status { font-size: 12px; }
+  button { padding: 10px 14px; } /* groessere Tap-Flaeche */
+
+  #sources { padding: 12px 16px 0; gap: 14px; }
+  .source-group { width: 100%; min-width: 0; }
+  .source-card { min-width: 0; width: 100%; }
+
+  main {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .chart-panel { padding: 10px 10px 14px; }
+  .chart-wrap { height: 260px; }
+
+  footer { padding: 14px 16px 28px; }
+}

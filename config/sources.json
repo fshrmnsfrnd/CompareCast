@@ -1,0 +1,34 @@
+{
+  "//": "Liste der Wetterquellen. Neue Orte oder Websites einfach als weiteren Eintrag ergaenzen.",
+  "//provider": "Muss zu einem registrierten Provider in src/providers/index.ts passen (aktuell: 'windfinder').",
+  "sources": [
+    {
+      "id": "windfinder-forecast-herrsching",
+      "label": "Windfinder GFS (Herrsching)",
+      "location": "Herrsching",
+      "provider": "windfinder",
+      "url": "https://de.windfinder.com/forecast/ammersee_herrsching"
+    },
+    {
+      "id": "windfinder-super-herrsching",
+      "label": "Windfinder Superforecast (Herrsching)",
+      "location": "Herrsching",
+      "provider": "windfinder",
+      "url": "https://de.windfinder.com/weatherforecast/ammersee_herrsching"
+    },
+    {
+      "id": "windfinder-forecast-woerthsee",
+      "label": "Windfinder GFS (Wörthsee)",
+      "location": "Wörthsee",
+      "provider": "windfinder",
+      "url": "https://de.windfinder.com/forecast/steinebach_am_woerthsee"
+    },
+    {
+      "id": "windfinder-super-woerthsee",
+      "label": "Windfinder Superforecast (Wörthsee)",
+      "location": "Wörthsee",
+      "provider": "windfinder",
+      "url": "https://de.windfinder.com/weatherforecast/steinebach_am_woerthsee"
+    }
+  ]
+}

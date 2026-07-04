@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CompareCast</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>CompareCast</h1>
+      <div class="actions">
+        <span id="status"></span>
+        <button id="refresh">Jetzt aktualisieren</button>
+      </div>
+    </header>
+
+    <section id="sources"></section>
+
+    <nav id="day-nav">
+      <button id="day-prev" aria-label="Vorheriger Tag">◀</button>
+      <span id="day-label">–</span>
+      <button id="day-next" aria-label="Nächster Tag">▶</button>
+    </nav>
+
+    <main id="charts"></main>
+
+    <footer>
+      Datenquelle: konfigurierte Wetter-Websites. Automatische Aktualisierung im
+      Hintergrund; diese Ansicht laedt alle 5 Minuten neu.
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

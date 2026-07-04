@@ -1,0 +1,18 @@
+services:
+  comparecast:
+    build: .
+    container_name: comparecast
+    ports:
+      - "3000:3000"
+    environment:
+      # Aktualisierungsintervall in Minuten (Standard: 180 = alle 3 Stunden)
+      UPDATE_INTERVAL_MINUTES: "180"
+      PORT: "3000"
+    volumes:
+      # Quellen zur Laufzeit anpassbar, ohne Neu-Build
+      - ./config:/app/config
+      # Frontend zur Laufzeit anpassbar, ohne Neu-Build
+      - ./public:/app/public
+      # Abgerufene Daten bleiben ueber Neustarts erhalten
+      - ./data:/app/data
+    restart: unless-stopped

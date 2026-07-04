@@ -1,0 +1,25 @@
+{
+  "name": "comparecast",
+  "version": "1.0.0",
+  "description": "Ruft Wetterdaten von mehreren Websites ab und zeigt sie als vergleichende Graphen an.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "scrape": "tsc && node dist/cli.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
