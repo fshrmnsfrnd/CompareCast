@@ -64,13 +64,13 @@ if (typeof Chart !== "undefined") Chart.register(crosshairPlugin);
 // Farbskala fuer die Windbedingungen (Knoten). Wenig Wind -> dunkelblau/lila,
 // guter Wind -> kraeftiges Gruen, viel Wind -> ueber Gelb nach Rot.
 const WIND_STOPS = [
-  { v: 0, c: [70, 45, 110] }, // dunkles Lila (fast windstill)
-  { v: 3, c: [40, 70, 150] }, // dunkelblau
-  { v: 8, c: [30, 140, 130] }, // Blaugruen (Uebergang)
-  { v: 14, c: [40, 200, 90] }, // kraeftiges Gruen (guter Wind)
-  { v: 20, c: [225, 210, 60] }, // Gelb
-  { v: 28, c: [235, 140, 45] }, // Orange
-  { v: 36, c: [220, 50, 50] }, // Rot (Sturm)
+  { v: 0, c: [80, 30, 130] }, // kraeftiges Lila (fast windstill)
+  { v: 3, c: [30, 60, 190] }, // sattes Blau
+  { v: 8, c: [20, 160, 150] }, // Blaugruen (Uebergang)
+  { v: 14, c: [30, 220, 70] }, // knalliges Gruen (guter Wind)
+  { v: 20, c: [235, 220, 30] }, // Gelb
+  { v: 28, c: [245, 130, 20] }, // Orange
+  { v: 36, c: [235, 30, 30] }, // Rot (Sturm)
 ];
 
 // Windwert (kn) -> rgba-Farbe, linear zwischen den Stops interpoliert.
@@ -94,55 +94,48 @@ function windColor(kn, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// Hintergrund-Farbverlauf, der die Windbedingungen ueber die Zeit wiedergibt.
-// Nur fuer Graphen mit conditionBg-Option aktiv (Wind + Boeen). Fuer jeden
-// Zeitpunkt wird der hoechste Wert aller Quellen genommen und eingefaerbt.
+// Hintergrund-Farbverlauf, der die Windbedingungen wiedergibt: vertikal, an der
+// y-Achse ausgerichtet. Unten (wenig Wind) dunkelblau/lila, oben (viel Wind)
+// ueber Gelb nach Rot. Nur fuer Graphen mit conditionBg-Option (Wind + Boeen).
 const conditionBgPlugin = {
   id: "conditionBg",
   beforeDatasetsDraw(chart) {
     const opt = chart.options.plugins && chart.options.plugins.conditionBg;
     if (!opt || !opt.enabled) return;
     const area = chart.chartArea;
-    const width = area.right - area.left;
-    if (width <= 0) return;
+    const height = area.bottom - area.top;
+    if (height <= 0) return;
+    const yScale = chart.scales.y;
+    if (!yScale) return;
 
-    // Pro Zeitpunkt den hoechsten y-Wert aller Quellen (staerkste Bedingung).
-    const maxByX = new Map();
-    chart.data.datasets.forEach((ds) => {
-      ds.data.forEach((pt) => {
-        if (pt == null || pt.y == null || Number.isNaN(pt.y)) return;
-        const cur = maxByX.get(pt.x);
-        if (cur == null || pt.y > cur) maxByX.set(pt.x, pt.y);
-      });
-    });
-    if (maxByX.size === 0) return;
-
-    // Auf sichtbare Position (0..1) abbilden und als Farbverlauf zeichnen.
-    const stops = [];
-    for (const [x, y] of maxByX) {
-      const px = chart.scales.x.getPixelForValue(x);
-      if (px == null || Number.isNaN(px)) continue;
-      const pos = (px - area.left) / width;
-      if (pos < -0.02 || pos > 1.02) continue;
-      stops.push({ pos: Math.max(0, Math.min(1, pos)), y });
-    }
-    if (stops.length === 0) return;
-    stops.sort((a, b) => a.pos - b.pos);
-
-    const grad = chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
+    // Verlauf von unten (Offset 0) nach oben (Offset 1).
+    const grad = chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
     let last = -1;
-    stops.forEach((s) => {
-      let p = s.pos;
-      if (p <= last) p = last + 1e-4; // Stops muessen aufsteigend sein
-      p = Math.min(1, p);
-      last = p;
-      grad.addColorStop(p, windColor(s.y, 0.28));
+    WIND_STOPS.forEach((s) => {
+      const py = yScale.getPixelForValue(s.v);
+      if (py == null || Number.isNaN(py)) return;
+      let pos = (area.bottom - py) / height; // 0 = unten, 1 = oben
+      if (pos < 0 || pos > 1) return; // ausserhalb des sichtbaren y-Bereichs
+      if (pos <= last) pos = last + 1e-4; // Stops muessen aufsteigend sein
+      pos = Math.min(1, pos);
+      last = pos;
+      grad.addColorStop(pos, windColor(s.v, 0.5));
     });
+    // Randfarben ergaenzen, falls der sichtbare Bereich enger als die Skala ist.
+    if (last < 0) {
+      grad.addColorStop(0, windColor(yScale.min, 0.5));
+      grad.addColorStop(1, windColor(yScale.max, 0.5));
+    } else {
+      const bottomC = windColor(Math.max(WIND_STOPS[0].v, yScale.min), 0.5);
+      const topC = windColor(Math.min(WIND_STOPS[WIND_STOPS.length - 1].v, yScale.max), 0.5);
+      grad.addColorStop(0, bottomC);
+      grad.addColorStop(1, topC);
+    }
 
     const ctx = chart.ctx;
     ctx.save();
     ctx.fillStyle = grad;
-    ctx.fillRect(area.left, area.top, width, area.bottom - area.top);
+    ctx.fillRect(area.left, area.top, area.right - area.left, height);
     ctx.restore();
   },
 };
