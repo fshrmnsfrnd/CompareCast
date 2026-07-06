@@ -1,8 +1,8 @@
 // Welche Werte als Graphen angezeigt werden. Erweiterbar: einfach Eintrag ergaenzen
 // (key muss einem Feld in ForecastPoint entsprechen).
 const METRICS = [
-  { key: "windspeed", label: "Windgeschwindigkeit (kn)" },
-  { key: "gust", label: "Böen (kn)" },
+  { key: "windspeed", label: "Windgeschwindigkeit (kn)", conditionBg: true },
+  { key: "gust", label: "Böen (kn)", conditionBg: true },
   { key: "temperature", label: "Temperatur (°C)" },
   { key: "precip", label: "Niederschlag (mm)", fill: true },
 ];
@@ -60,6 +60,93 @@ const crosshairPlugin = {
   },
 };
 if (typeof Chart !== "undefined") Chart.register(crosshairPlugin);
+
+// Farbskala fuer die Windbedingungen (Knoten). Wenig Wind -> dunkelblau/lila,
+// guter Wind -> kraeftiges Gruen, viel Wind -> ueber Gelb nach Rot.
+const WIND_STOPS = [
+  { v: 0, c: [70, 45, 110] }, // dunkles Lila (fast windstill)
+  { v: 3, c: [40, 70, 150] }, // dunkelblau
+  { v: 8, c: [30, 140, 130] }, // Blaugruen (Uebergang)
+  { v: 14, c: [40, 200, 90] }, // kraeftiges Gruen (guter Wind)
+  { v: 20, c: [225, 210, 60] }, // Gelb
+  { v: 28, c: [235, 140, 45] }, // Orange
+  { v: 36, c: [220, 50, 50] }, // Rot (Sturm)
+];
+
+// Windwert (kn) -> rgba-Farbe, linear zwischen den Stops interpoliert.
+function windColor(kn, alpha) {
+  if (kn == null || Number.isNaN(kn)) return null;
+  const s = WIND_STOPS;
+  let lo = s[0];
+  let hi = s[s.length - 1];
+  for (let i = 1; i < s.length; i++) {
+    if (kn <= s[i].v) {
+      lo = s[i - 1];
+      hi = s[i];
+      break;
+    }
+  }
+  const span = hi.v - lo.v || 1;
+  const t = Math.max(0, Math.min(1, (kn - lo.v) / span));
+  const r = Math.round(lo.c[0] + (hi.c[0] - lo.c[0]) * t);
+  const g = Math.round(lo.c[1] + (hi.c[1] - lo.c[1]) * t);
+  const b = Math.round(lo.c[2] + (hi.c[2] - lo.c[2]) * t);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Hintergrund-Farbverlauf, der die Windbedingungen ueber die Zeit wiedergibt.
+// Nur fuer Graphen mit conditionBg-Option aktiv (Wind + Boeen). Fuer jeden
+// Zeitpunkt wird der hoechste Wert aller Quellen genommen und eingefaerbt.
+const conditionBgPlugin = {
+  id: "conditionBg",
+  beforeDatasetsDraw(chart) {
+    const opt = chart.options.plugins && chart.options.plugins.conditionBg;
+    if (!opt || !opt.enabled) return;
+    const area = chart.chartArea;
+    const width = area.right - area.left;
+    if (width <= 0) return;
+
+    // Pro Zeitpunkt den hoechsten y-Wert aller Quellen (staerkste Bedingung).
+    const maxByX = new Map();
+    chart.data.datasets.forEach((ds) => {
+      ds.data.forEach((pt) => {
+        if (pt == null || pt.y == null || Number.isNaN(pt.y)) return;
+        const cur = maxByX.get(pt.x);
+        if (cur == null || pt.y > cur) maxByX.set(pt.x, pt.y);
+      });
+    });
+    if (maxByX.size === 0) return;
+
+    // Auf sichtbare Position (0..1) abbilden und als Farbverlauf zeichnen.
+    const stops = [];
+    for (const [x, y] of maxByX) {
+      const px = chart.scales.x.getPixelForValue(x);
+      if (px == null || Number.isNaN(px)) continue;
+      const pos = (px - area.left) / width;
+      if (pos < -0.02 || pos > 1.02) continue;
+      stops.push({ pos: Math.max(0, Math.min(1, pos)), y });
+    }
+    if (stops.length === 0) return;
+    stops.sort((a, b) => a.pos - b.pos);
+
+    const grad = chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
+    let last = -1;
+    stops.forEach((s) => {
+      let p = s.pos;
+      if (p <= last) p = last + 1e-4; // Stops muessen aufsteigend sein
+      p = Math.min(1, p);
+      last = p;
+      grad.addColorStop(p, windColor(s.y, 0.28));
+    });
+
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.fillRect(area.left, area.top, width, area.bottom - area.top);
+    ctx.restore();
+  },
+};
+if (typeof Chart !== "undefined") Chart.register(conditionBgPlugin);
 
 // Denselben Zeitpunkt in allen Graphen hervorheben (Fadenkreuz + Tooltips).
 function syncAll(xVal) {
@@ -446,6 +533,7 @@ function renderCharts(forecasts) {
           y: { ticks: { color: "#93a1ad", font: { size: 11 } }, grid: { color: "#2a3947" } },
         },
         plugins: {
+          conditionBg: { enabled: !!metric.conditionBg },
           legend: { labels: { color: "#e6edf3" } },
           tooltip: {
             callbacks: { title: (items) => fmtTime(items[0].parsed.x) },

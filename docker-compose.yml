@@ -1,6 +1,7 @@
 services:
   comparecast:
     build: .
+    #image: fshrmnsfrnd/comparecast:latest
     container_name: comparecast
     ports:
       - "3000:3000"
@@ -10,9 +11,14 @@ services:
       PORT: "3000"
     volumes:
       # Quellen zur Laufzeit anpassbar, ohne Neu-Build
-      - ./config:/app/config
+      #- ./config:/app/config
       # Frontend zur Laufzeit anpassbar, ohne Neu-Build
-      - ./public:/app/public
+      #- ./public:/app/public
       # Abgerufene Daten bleiben ueber Neustarts erhalten
       - ./data:/app/data
     restart: unless-stopped
+
+#networks:
+#  default:
+#    external: true
+#    name: public
