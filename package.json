@@ -11,13 +11,13 @@
     "scrape": "tsc && node dist/cli.js"
   },
   "dependencies": {
-    "cheerio": "^1.0.0",
-    "express": "^4.19.2"
+    "cheerio": "^1.2.0",
+    "express": "^5.3.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.14.0",
-    "typescript": "^5.4.5"
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=20"
